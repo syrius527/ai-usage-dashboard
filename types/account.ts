@@ -1,5 +1,15 @@
 export type AccountStatus = 'connected' | 'error' | 'expired';
 
+export type AgentType = 'claude-code' | 'codex' | 'gemini-cli' | 'cursor' | 'other';
+
+export const AGENT_TYPE_LABELS: Record<AgentType, string> = {
+  'claude-code': 'Claude Code',
+  'codex': 'Codex',
+  'gemini-cli': 'Gemini CLI',
+  'cursor': 'Cursor',
+  'other': 'Other',
+};
+
 export interface Account {
   id: string;
   name: string;
@@ -41,6 +51,8 @@ export interface UsageData {
 export interface AccountWithUsage {
   id: string;
   name: string;
+  agentType: AgentType;
+  plan: string | null;
   tokenHint: string;
   status: AccountStatus;
   hasRefreshToken: boolean;
@@ -57,6 +69,8 @@ export interface AccountListResponse {
 
 export interface CreateAccountRequest {
   name: string;
+  agentType?: AgentType;
+  plan?: string;
   token: string;
   refreshToken?: string;
   tokenExpiresAt?: string;
@@ -69,6 +83,8 @@ export interface CreateAccountResponse {
 
 export interface UpdateAccountRequest {
   name?: string;
+  agentType?: AgentType;
+  plan?: string;
   token?: string;
   refreshToken?: string;
   tokenExpiresAt?: string;

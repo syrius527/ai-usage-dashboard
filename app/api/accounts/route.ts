@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CreateAccountRequest;
-    const { name, token, refreshToken, tokenExpiresAt } = body;
+    const { name, agentType, plan, token, refreshToken, tokenExpiresAt } = body;
 
     const nameValidation = validateAccountName(name);
     if (!nameValidation.valid) {
@@ -63,7 +63,15 @@ export async function POST(request: Request) {
 
     const tokenHint = maskToken(token);
     const expiresAt = tokenExpiresAt ? new Date(tokenExpiresAt) : undefined;
-    const account = await createAccount(name, token, tokenHint, refreshToken, expiresAt);
+    const account = await createAccount(
+      name,
+      token,
+      tokenHint,
+      agentType ?? 'claude-code',
+      plan,
+      refreshToken,
+      expiresAt
+    );
 
     try {
       await refreshAccountUsage(account.id);

@@ -65,6 +65,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     await updateAccount(id, {
       name: body.name,
+      agentType: body.agentType,
+      plan: body.plan,
       token: body.token,
       tokenHint: body.token ? maskToken(body.token) : undefined,
       refreshToken: body.refreshToken,

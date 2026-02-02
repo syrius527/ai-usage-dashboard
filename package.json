@@ -25,6 +25,14 @@
     "tailwind-merge": "^2.2.0",
     "uuid": "^13.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "better-sqlite3",
+      "esbuild",
+      "unrs-resolver"
+    ]
+  },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^7.6.13",

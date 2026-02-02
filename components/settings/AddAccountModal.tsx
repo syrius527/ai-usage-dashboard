@@ -11,10 +11,18 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, Info, ChevronDown, ChevronRight } from 'lucide-react';
-import { validateOAuthToken, validateAccountName } from '@/types/account';
+import { validateOAuthToken, validateAccountName, AGENT_TYPE_LABELS, type AgentType } from '@/types/account';
 import { validateRefreshToken } from '@/lib/anthropic';
+import { AgentLogo } from '@/components/ui/agent-logo';
 
 interface AddAccountModalProps {
   open: boolean;
@@ -27,12 +35,17 @@ type VerifyStatus = 'idle' | 'verifying' | 'success' | 'error';
 interface VerifyResult {
   fiveHour: { utilization: number } | null;
   sevenDay: { utilization: number } | null;
+  plan?: string;
 }
+
+const AGENT_TYPES: AgentType[] = ['claude-code', 'codex', 'gemini-cli', 'cursor', 'other'];
 
 export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountModalProps) {
   const [name, setName] = useState('');
+  const [agentType, setAgentType] = useState<AgentType>('claude-code');
   const [token, setToken] = useState('');
   const [refreshToken, setRefreshToken] = useState('');
+  const [detectedPlan, setDetectedPlan] = useState<string | null>(null);
   const [showAutoRefresh, setShowAutoRefresh] = useState(false);
   const [refreshTokenError, setRefreshTokenError] = useState<string | null>(null);
   const [verifyStatus, setVerifyStatus] = useState<VerifyStatus>('idle');
@@ -43,8 +56,10 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
 
   const reset = () => {
     setName('');
+    setAgentType('claude-code');
     setToken('');
     setRefreshToken('');
+    setDetectedPlan(null);
     setShowAutoRefresh(false);
     setRefreshTokenError(null);
     setVerifyStatus('idle');
@@ -83,6 +98,9 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
       if (data.success) {
         setVerifyStatus('success');
         setVerifyResult(data.usage);
+        if (data.plan) {
+          setDetectedPlan(data.plan);
+        }
       } else {
         setVerifyStatus('error');
         setVerifyError(data.error?.message || 'Token verification failed');
@@ -113,6 +131,8 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
 
     const requestBody = JSON.stringify({
       name,
+      agentType,
+      plan: detectedPlan || undefined,
       token,
       refreshToken: refreshToken || undefined,
     });
@@ -149,17 +169,37 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add Account</DialogTitle>
-          <DialogDescription>Add a Claude Code OAuth token to monitor usage.</DialogDescription>
+          <DialogDescription>Add an AI coding agent account to monitor usage.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Account Name</label>
-            <Input
-              placeholder="e.g., Personal, Work"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Agent Type</label>
+              <Select value={agentType} onValueChange={(v) => setAgentType(v as AgentType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AGENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <div className="flex items-center gap-2">
+                        <AgentLogo type={type} size={16} />
+                        <span>{AGENT_TYPE_LABELS[type]}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Account Name</label>
+              <Input
+                placeholder="e.g., Personal, Work"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -173,6 +213,7 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
                 setVerifyStatus('idle');
                 setVerifyError(null);
                 setVerifyResult(null);
+                setDetectedPlan(null);
               }}
             />
             <Alert>
@@ -228,6 +269,7 @@ export function AddAccountModal({ open, onOpenChange, onSuccess }: AddAccountMod
               <AlertDescription>
                 <span className="font-medium">Token verified!</span>
                 <div className="mt-1 text-xs space-y-0.5">
+                  {detectedPlan && <div>Plan: {detectedPlan}</div>}
                   {verifyResult.fiveHour && (
                     <div>5-hour limit: {verifyResult.fiveHour.utilization.toFixed(1)}%</div>
                   )}

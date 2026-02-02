@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { UsageProgress } from './UsageProgress';
+import { AgentLogo } from '@/components/ui/agent-logo';
 import type { AccountWithUsage, AccountStatus } from '@/types/account';
 
 interface UsageCardProps {
@@ -24,14 +25,33 @@ function getStatusBadge(status: AccountStatus) {
   }
 }
 
+function formatPlanName(plan: string | null): string | null {
+  if (!plan) return null;
+  return plan
+    .replace(/^default_/, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function UsageCard({ account, onRefresh, refreshing }: UsageCardProps) {
   const { usage, status, lastError } = account;
+  const formattedPlan = formatPlanName(account.plan);
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{account.name}</CardTitle>
+          <div className="flex items-center gap-3">
+            <AgentLogo type={account.agentType} size={28} />
+            <div>
+              <CardTitle className="text-lg">{account.name}</CardTitle>
+              {formattedPlan && (
+                <Badge variant="secondary" className="mt-1 text-xs font-normal">
+                  {formattedPlan}
+                </Badge>
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             {getStatusBadge(status)}
             <Button
@@ -45,7 +65,7 @@ export function UsageCard({ account, onRefresh, refreshing }: UsageCardProps) {
             </Button>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground font-mono">{account.tokenHint}</p>
+        <p className="text-xs text-muted-foreground font-mono mt-1">{account.tokenHint}</p>
       </CardHeader>
 
       <CardContent className="space-y-4">

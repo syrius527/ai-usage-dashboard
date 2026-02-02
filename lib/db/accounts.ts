@@ -10,7 +10,7 @@ import {
   refreshOAuthToken,
   isTokenExpiredOrNearExpiry,
 } from '@/lib/anthropic';
-import type { AccountWithUsage, UsageData, AccountStatus, maskToken } from '@/types/account';
+import type { AccountWithUsage, UsageData, AccountStatus, AgentType } from '@/types/account';
 
 export interface ResolvedAccount {
   id: string;
@@ -57,6 +57,8 @@ export async function getAllAccountsWithUsage(): Promise<AccountWithUsage[]> {
     result.push({
       id: account.id,
       name: account.name,
+      agentType: (account.agentType ?? 'claude-code') as AgentType,
+      plan: account.plan,
       tokenHint: account.tokenHint,
       status: account.status as AccountStatus,
       hasRefreshToken: !!account.refreshTokenEncrypted,
@@ -112,6 +114,8 @@ export async function getAccountWithUsage(accountId: string): Promise<AccountWit
   return {
     id: account.id,
     name: account.name,
+    agentType: (account.agentType ?? 'claude-code') as AgentType,
+    plan: account.plan,
     tokenHint: account.tokenHint,
     status: account.status as AccountStatus,
     hasRefreshToken: !!account.refreshTokenEncrypted,
@@ -149,6 +153,8 @@ export async function createAccount(
   name: string,
   token: string,
   tokenHint: string,
+  agentType: AgentType = 'claude-code',
+  plan?: string,
   refreshToken?: string,
   tokenExpiresAt?: Date
 ): Promise<AccountWithUsage> {
@@ -158,6 +164,8 @@ export async function createAccount(
   await db.insert(accounts).values({
     id: accountId,
     name: name.trim(),
+    agentType,
+    plan: plan ?? null,
     tokenEncrypted: encrypt(token),
     tokenHint,
     refreshTokenEncrypted: refreshToken ? encrypt(refreshToken) : null,
@@ -312,6 +320,8 @@ export async function updateAccount(
   accountId: string,
   updates: {
     name?: string;
+    agentType?: AgentType;
+    plan?: string;
     token?: string;
     tokenHint?: string;
     refreshToken?: string;
@@ -324,6 +334,14 @@ export async function updateAccount(
 
   if (updates.name !== undefined) {
     updateValues.name = updates.name.trim();
+  }
+
+  if (updates.agentType !== undefined) {
+    updateValues.agentType = updates.agentType;
+  }
+
+  if (updates.plan !== undefined) {
+    updateValues.plan = updates.plan;
   }
 
   if (updates.token !== undefined) {

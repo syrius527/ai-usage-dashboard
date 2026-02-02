@@ -3,6 +3,10 @@ import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 export const accounts = sqliteTable('accounts', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  agentType: text('agent_type', { enum: ['claude-code', 'codex', 'gemini-cli', 'cursor', 'other'] })
+    .notNull()
+    .default('claude-code'),
+  plan: text('plan'),
   tokenEncrypted: text('token_encrypted').notNull(),
   tokenHint: text('token_hint').notNull(),
   refreshTokenEncrypted: text('refresh_token_encrypted'),

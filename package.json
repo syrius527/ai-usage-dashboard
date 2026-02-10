@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3333",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -24,6 +24,14 @@
     "recharts": "^2.10.0",
     "tailwind-merge": "^2.2.0",
     "uuid": "^13.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "better-sqlite3",
+      "esbuild",
+      "unrs-resolver"
+    ]
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
